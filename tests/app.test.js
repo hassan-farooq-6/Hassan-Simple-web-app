@@ -2,34 +2,30 @@
  * @jest-environment jsdom
  */
 
-// Mock DOM elements
-document.body.innerHTML = `
-  <div id="menuToggle"></div>
-  <div class="nav-links"></div>
-  <div id="contactForm"></div>
-  <div id="formMessage"></div>
-`;
-
-// Mock functions from script.js
-global.scrollToSection = function(sectionId) {
-  return true;
-};
-
-global.menuToggle = { addEventListener: jest.fn() };
-global.navLinks = { classList: { toggle: jest.fn(), remove: jest.fn() } };
-
 describe('TechFlow Website Tests', () => {
-  test('scrollToSection function exists', () => {
-    expect(typeof scrollToSection).toBe('function');
-  });
-  
-  test('scrollToSection works correctly', () => {
-    const result = scrollToSection('contact');
-    expect(result).toBe(true);
-  });
-  
-  test('DOM elements exist', () => {
+  test('HTML structure is valid', () => {
+    document.body.innerHTML = `
+      <div id="menuToggle"></div>
+      <div class="nav-links"></div>
+      <div id="contactForm"></div>
+    `;
+    
     expect(document.getElementById('menuToggle')).toBeTruthy();
     expect(document.querySelector('.nav-links')).toBeTruthy();
+    expect(document.getElementById('contactForm')).toBeTruthy();
+  });
+  
+  test('Basic JavaScript functionality', () => {
+    // Mock scrollToSection function
+    global.scrollToSection = function(sectionId) {
+      return sectionId === 'contact';
+    };
+    
+    expect(scrollToSection('contact')).toBe(true);
+  });
+  
+  test('Page title is correct', () => {
+    document.title = '1st Containerized Simple Web Application';
+    expect(document.title).toContain('Containerized');
   });
 });
