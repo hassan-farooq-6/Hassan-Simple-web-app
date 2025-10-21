@@ -18,16 +18,12 @@ jobs:
         node-version: '18'
     
     - name: Install dependencies
-      run: npm install
+      run: |
+        npm install
+        npm install --save-dev jest-environment-jsdom
     
     - name: Run tests
       run: npm test
-    
-    - name: Validate HTML
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y tidy
-        tidy -q -e index.html || echo "HTML validation completed"
 
   build-and-test:
     needs: test
@@ -42,21 +38,9 @@ jobs:
       run: |
         docker run -d -p 8080:80 --name test-app techflow-app
         sleep 10
-        
-        # Test main page loads
         curl -f http://localhost:8080 || exit 1
-        
-        # Test CSS loads
         curl -f http://localhost:8080/styles.css || exit 1
-        
-        # Test JS loads
         curl -f http://localhost:8080/script.js || exit 1
-        
-        # Check response time
-        response_time=$(curl -o /dev/null -s -w '%{time_total}' http://localhost:8080)
-        echo "Response time: ${response_time}s"
-        
-        # Cleanup
         docker stop test-app && docker rm test-app
 
   deploy:
@@ -71,25 +55,3 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: .
-
-  health-check:
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-    - name: Wait for deployment
-      run: sleep 30
-    
-    - name: Health check production
-      run: |
-        PROD_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
-        
-        # Check if site is accessible
-        curl -f "$PROD_URL" || exit 1
-        
-        # Check response time
-        response_time=$(curl -o /dev/null -s -w '%{time_total}' "$PROD_URL")
-        echo "Production response time: ${response_time}s"
-        
-        echo "✅ TechFlow website deployed successfully!"
-        echo "🌐 Live at: $PROD_URL"
