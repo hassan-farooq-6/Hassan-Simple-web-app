@@ -46,21 +46,28 @@ jobs:
         curl -f http://localhost:8080 || exit 1
         docker stop test-app && docker rm test-app
 
-  deploy-container:
+  deploy:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
     - uses: actions/checkout@v4
     
-    - name: Build Docker image
-      run: docker build -t techflow-app .
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
     
-    - name: Save Docker image
-      run: |
-        docker save techflow-app > techflow-app.tar
-        echo "✅ Container built and saved successfully!"
-        echo "Image size: $(du -h techflow-app.tar)"
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+    
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
 
       
 
